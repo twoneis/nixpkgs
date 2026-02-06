@@ -18,6 +18,7 @@ let
         key = netCfg.key;
       };
       static_host_map = netCfg.staticHostMap;
+      preferred_ranges = netCfg.preferredRanges;
       lighthouse = {
         am_lighthouse = netCfg.isLighthouse;
         hosts = netCfg.lighthouses;
@@ -126,6 +127,16 @@ in
                 example = {
                   "192.168.100.1" = [ "100.64.22.11:4242" ];
                 };
+              };
+
+              preferredRanges = lib.mkOption {
+                type = lib.types.listOf (lib.types.str);
+                default = [];
+                description = ''
+                  Sets the priority order for underlay IP addresses.
+                  Please refer to the [references](https://nebula.defined.net/docs/config/preferred-ranges/) for detailed documentation.
+                '';
+                example = ["172.16.0.0/24"];
               };
 
               isLighthouse = lib.mkOption {
