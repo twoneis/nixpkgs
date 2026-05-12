@@ -30,14 +30,20 @@
   common-updater-scripts,
 }:
 
+let
+  sources = import ./sources.nix { inherit fetchurl; };
+  source =
+    sources.${stdenv.hostPlatform.system}
+      or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
+  inherit (source) version src;
+in
 stdenv.mkDerivation rec {
-  pname = "osmium";
-  version = "0.0.19-alpha";
+  inherit
+    version
+    src
+    ;
 
-  src = fetchurl {
-    url = "https://updater.osmium.chat/Osmium-${version}-x64.tar.gz";
-    hash = "sha256-Qwh6K2QlJJapqR0BkaA0LvwLEsqktnLzOnyJg+7sMFo=";
-  };
+  pname = "osmium";
 
   nativeBuildInputs = [
     autoPatchelfHook
@@ -103,18 +109,7 @@ stdenv.mkDerivation rec {
   };
 
   passthru = {
-    updateScript = lib.getExe (writeShellApplication {
-      name = "update-osmium";
-      runtimeInputs = [
-        curl
-        yq
-        common-updater-scripts
-      ];
-      text = ''
-        version="$(curl -s https://updater.osmium.chat/alpha-linux.yml | yq .version)"
-        update-source-version osmium "${version}"
-      '';
-    });
+    updateScript = ./update.sh;
   };
 
   meta = {
@@ -126,6 +121,9 @@ stdenv.mkDerivation rec {
       twoneis
     ];
     platforms = [
+      "aarch64-darwin"
+      "aarch64-linux"
+      "x86_64-darwin"
       "x86_64-linux"
     ];
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
