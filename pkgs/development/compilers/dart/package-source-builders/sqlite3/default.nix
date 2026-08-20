@@ -3,6 +3,7 @@
   lib,
   writeScript,
   sqlite,
+  sqlcipher,
 }:
 
 { version, src, ... }:
@@ -15,6 +16,7 @@ stdenv.mkDerivation (finalAttrs: {
   setupHook = writeScript "${finalAttrs.pname}-setup-hook" ''
     sqliteFixupHook() {
       runtimeDependencies+=('${lib.getLib sqlite}')
+      runtimeDependencies+=('${lib.getLib sqlcipher}')
     }
 
     preFixupHooks+=(sqliteFixupHook)
@@ -25,6 +27,8 @@ stdenv.mkDerivation (finalAttrs: {
       ''
         substituteInPlace lib/src/hook/compile/description.dart \
           --replace-fail "return fromGitHub(LibraryType.sqlite3);" "return LookupSystem('sqlite3');"
+        substituteInPlace lib/src/hook/compile/description.dart \
+          --replace-fail "return fromGitHub(LibraryType.sqlcipher);" "return LookupSystem('sqlcipher');"
       ''
     else
       lib.optionalString (lib.versionAtLeast version "3.2.0") ''
