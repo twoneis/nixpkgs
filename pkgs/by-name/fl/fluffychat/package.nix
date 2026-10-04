@@ -6,13 +6,16 @@
   imagemagick,
   libgbm,
   libdrm,
-  flutter344,
+  libgcrypt,
+  libgpg-error,
+  libpulseaudio,
+  flutter347,
   pulseaudio,
   webkitgtk_4_1,
   copyDesktopItems,
   makeDesktopItem,
   callPackage,
-  vodozemac-wasm ? callPackage ./vodozemac-wasm.nix { flutter = flutter344; },
+  vodozemac-wasm ? callPackage ./vodozemac-wasm.nix { flutter = flutter347; },
   targetFlutterPlatform ? "linux",
 }:
 
@@ -22,33 +25,37 @@ let
     libdrm
   ];
   pubspecLock = lib.importJSON ./pubspec.lock.json;
-  libwebrtc_version = "m144.7559.09";
+  libwebrtc_version = "m150.7871.02";
   libwebrtc =
     {
       x86_64-linux = fetchzip {
         url = "https://github.com/webrtc-sdk/libwebrtc/releases/download/libwebrtc.${libwebrtc_version}/libwebrtc-linux-x64-release.zip";
-        sha256 = "sha256-uzS07voCGM1zs663UalYpb8pWiYpkrKMxKt/wB4rcB4=";
+        sha256 = "sha256-0C+nRrTOlmERYMivgG/P/rQYwcr1Wc5c1gm+meHjpTc=";
       };
       aarch64-linux = fetchzip {
         url = "https://github.com/webrtc-sdk/libwebrtc/releases/download/libwebrtc.${libwebrtc_version}/libwebrtc-linux-arm64-release.zip";
-        sha256 = "sha256-nMMU/HrCN4zSB4vO1O4TfJRBtK87OX+zYbxZRq8Q4Us=";
+        sha256 = "sha256-/mcjuTufEVFFrhJz30yy4MxpDxM0l9jOwz3Tchk+fXM=";
       };
     }
     .${stdenv.hostPlatform.system};
 in
-flutter344.buildFlutterApplication (
+flutter347.buildFlutterApplication (
   rec {
     pname = "fluffychat-${targetFlutterPlatform}";
-    version = "2.9.4";
+    version = "2.10.0";
 
     src = fetchFromGitHub {
       owner = "krille-chan";
       repo = "fluffychat";
       tag = "v${version}";
-      hash = "sha256-nL0zyOg3pXbgg9hkXzq6B2igmUQ5jkTVlVi7k8TLggA=";
+      hash = "sha256-pvetCJxw8m97wqOS0ETtvdMNwrHQBO3cp/esIZJvBcg=";
     };
 
     inherit pubspecLock;
+
+    gitHashes = {
+      matrix = "sha256-TV7DRH9VSiFEw2cF9ZMFByiLtek4Tjmrg/wuM+uluwQ=";
+    };
 
     inherit targetFlutterPlatform;
 
@@ -76,7 +83,15 @@ flutter344.buildFlutterApplication (
       webkitgtk_4_1
     ];
 
-    runtimeDependencies = [ pulseaudio ];
+    buildInputs = [
+      libgcrypt
+      libgpg-error
+      libpulseaudio
+    ];
+
+    runtimeDependencies = [
+      pulseaudio
+    ];
 
     env.NIX_LDFLAGS = "-rpath-link ${libwebrtcRpath}";
     env.CXXFLAGS = "-include cstdint";
