@@ -21,6 +21,7 @@ let
         _0_4_1 = "sha256-eKKrcroV2yl/FV2WmgZWFPO5MPAGz0xCvpr0fgIuGZ4=";
         _0_5_0 = "sha256-eKKrcroV2yl/FV2WmgZWFPO5MPAGz0xCvpr0fgIuGZ4=";
         _0_7_1 = "sha256-KsOyQyz9TqcmkHwuf3iA0NQU+pOOtoBVKv1AxZCjxnw=";
+        _0_8_1 = "sha256-F2p3kD0MbBaT3Mc/aKoIYP1tfX/DxHuZSY3Z8EPco0k=";
       }
       .${"_" + (lib.replaceStrings [ "." ] [ "_" ] version)} or (throw ''
         Unsupported version of pub 'flutter_vodozemac': '${version}'
@@ -49,6 +50,18 @@ let
       }
     }
   '';
+
+  replaceLibPath =
+    if (lib.versionAtLeast version "0.8.1") then
+      ''
+        substituteInPlace lib/flutter_vodozemac.dart \
+          --replace-warn "libraryPath: libraryPath ?? defaultLibraryPath()" "libraryPath: _getLibraryPath()"
+      ''
+    else
+      ''
+        substituteInPlace lib/flutter_vodozemac.dart \
+        --replace-warn "libraryPath: './'" "libraryPath: _getLibraryPath()"
+      '';
 in
 stdenv.mkDerivation {
   pname = "flutter_vodozemac";
@@ -66,8 +79,7 @@ stdenv.mkDerivation {
       chmod +rwx cargokit/cmake/cargokit.cmake
       cp ${fakeCargokitCmake} cargokit/cmake/cargokit.cmake
       chmod +rw lib/flutter_vodozemac.dart
-      substituteInPlace lib/flutter_vodozemac.dart \
-        --replace-warn "libraryPath: './'" "libraryPath: _getLibraryPath()"
+      ${replaceLibPath}
       echo "${getLibraryPath}" >> lib/flutter_vodozemac.dart
     popd
 
